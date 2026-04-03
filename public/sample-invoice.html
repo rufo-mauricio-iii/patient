@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Invoice - ORD-001</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #1a1a1a;
+      line-height: 1.5;
+      padding: 40px;
+      max-width: 900px;
+      margin: 0 auto;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    th, td {
+      padding: 8px 12px;
+      text-align: left;
+      font-size: 13px;
+    }
+    th {
+      background-color: #f4f4f5;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      color: #52525b;
+      border-bottom: 2px solid #d4d4d8;
+    }
+    td {
+      border-bottom: 1px solid #e4e4e7;
+    }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    @media print {
+      body { padding: 20px; }
+      .no-print { display: none; }
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #18181b;
+      padding-bottom: 20px;
+      margin-bottom: 28px;
+    }
+    .header-left h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #18181b;
+      margin-bottom: 4px;
+    }
+    .header-left .company {
+      font-size: 14px;
+      font-weight: 600;
+      color: #3f3f46;
+    }
+    .header-left .address {
+      font-size: 12px;
+      color: #71717a;
+      margin-top: 2px;
+    }
+    .header-right {
+      text-align: right;
+    }
+    .header-right .invoice-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #71717a;
+      font-weight: 600;
+    }
+    .header-right .invoice-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #18181b;
+    }
+    .bill-to {
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 24px;
+      max-width: 360px;
+    }
+    .bill-to h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #71717a;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .bill-to p {
+      font-size: 13px;
+      color: #27272a;
+      margin-bottom: 2px;
+    }
+    .summary {
+      margin: 24px 0;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .summary-table {
+      width: 300px;
+    }
+    .summary-table tr td {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+    .summary-table .subtotal td {
+      border-bottom: 1px solid #e4e4e7;
+      color: #52525b;
+    }
+    .summary-table .total td {
+      font-size: 16px;
+      font-weight: 700;
+      color: #18181b;
+      padding-top: 10px;
+    }
+    .payment-section {
+      margin: 32px 0;
+      text-align: center;
+    }
+    .pay-online {
+      display: inline-block;
+      background: #18181b;
+      color: #ffffff;
+      padding: 12px 32px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .pay-online:hover {
+      background: #27272a;
+    }
+    .pay-online-label {
+      font-size: 12px;
+      color: #71717a;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-weight: 600;
+    }
+    .instructions {
+      margin: 32px 0;
+      padding: 20px;
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 6px;
+    }
+    .instructions h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #27272a;
+      margin-bottom: 10px;
+    }
+    .instructions p {
+      font-size: 12px;
+      color: #52525b;
+      margin-bottom: 6px;
+      line-height: 1.6;
+    }
+    .footer {
+      margin-top: 48px;
+      padding-top: 16px;
+      border-top: 2px solid #e4e4e7;
+      text-align: center;
+      font-size: 11px;
+      color: #a1a1aa;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <h1>PATIENT INVOICE</h1>
+      <div class="company">MedSupply Distribution Co.</div>
+      <div class="address">1234 Healthcare Blvd, Suite 100<br>San Francisco, CA 94102</div>
+    </div>
+    <div class="header-right">
+      <div style="margin-bottom: 8px;">
+        <div class="invoice-label">Invoice Number</div>
+        <div class="invoice-value">ORD-001</div>
+      </div>
+      <div>
+        <div class="invoice-label">Invoice Date</div>
+        <div class="invoice-value">March 15, 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bill-to">
+    <h3>Bill To</h3>
+    <p style="font-weight: 600;">Maria Santos</p>
+    <p>456 Oak Ave, San Jose, CA 95112</p>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>HCPCS Code</th>
+        <th class="text-center">Qty</th>
+        <th class="text-right">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Medi Comfort Compression Sleeve - Upper Arm</td>
+        <td>A6530</td>
+        <td class="text-center">2</td>
+        <td class="text-right">$14.50</td>
+      </tr>
+      <tr>
+        <td>Medi Harmony Compression Gauntlet</td>
+        <td>A6530</td>
+        <td class="text-center">1</td>
+        <td class="text-right">$14.50</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="summary">
+    <table class="summary-table">
+      <tr class="subtotal">
+        <td>Subtotal</td>
+        <td class="text-right">$43.50</td>
+      </tr>
+      <tr class="total">
+        <td>Total Due</td>
+        <td class="text-right">$43.50</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="payment-section">
+    <div class="pay-online-label">Pay Online</div>
+    <a href="https://buy.stripe.com/example_abc123" class="pay-online" target="_blank">
+      Pay $43.50 Online
+    </a>
+    <div style="margin-top: 8px; font-size: 11px; color: #a1a1aa;">
+      Secure payment powered by Stripe
+    </div>
+  </div>
+
+  <div class="instructions">
+    <h3>Payment Instructions</h3>
+    <p>You may pay online using the link above for fastest processing.</p>
+    <p>For questions about this invoice, please contact our billing department at billing@medsupply.com or call (800) 555-0199.</p>
+    <p>Please reference your invoice number <strong>ORD-001</strong> with any correspondence.</p>
+    <p>Payment is due within 30 days of the invoice date.</p>
+  </div>
+
+  <div class="footer">
+    MedSupply Distribution Co. &mdash; Thank you for your business
+  </div>
+</body>
+</html>

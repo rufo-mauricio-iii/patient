@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { OrderStatus } from "@/lib/types";
 import { formatPatientName } from "@/lib/utils";
+import { DocumentButtons } from "@/components/documents/document-buttons";
 import {
   Card,
   CardContent,
@@ -359,47 +360,10 @@ export default function OrderDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {order.documents.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No documents have been generated yet.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {order.documents.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="flex items-center justify-between rounded-md border p-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium">
-                            {docTypeLabel(doc.type)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Generated on {formatDate(doc.generatedAt)}
-                          </p>
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <Download className="mr-2 h-3 w-3" />
-                        Download
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <Separator className="my-4" />
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Download className="mr-2 h-3 w-3" />
-                  Download Encounter Form
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Download className="mr-2 h-3 w-3" />
-                  Download Invoice
-                </Button>
-              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Generate and download order documents.
+              </p>
+              <DocumentButtons order={order} />
             </CardContent>
           </Card>
 
