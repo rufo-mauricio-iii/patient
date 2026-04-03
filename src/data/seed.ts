@@ -187,7 +187,7 @@ export const seedOrders: Order[] = [
     totalBillable: 4442.50,
     totalPatientResponsibility: 888.50,
     totalMargin: 1521.50,
-    stripePaymentLink: "",
+    stripePaymentLink: "https://buy.stripe.com/live_abc123xyz",
     notes: "Patient referred by Dr. Patel at UCSF Lymphedema Clinic. Flexitouch requires prior authorization.",
     documents: [],
     statusHistory: [],
