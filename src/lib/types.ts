@@ -67,6 +67,18 @@ export interface Order {
   notes: string;
   // Documents
   documents: GeneratedDocument[];
+  // Status history
+  statusHistory: StatusChange[];
+}
+
+export interface StatusChange {
+  id: string;
+  fromStatus: OrderStatus;
+  toStatus: OrderStatus;
+  actorName: string;
+  actorRole: "employee" | "manager";
+  comment: string;
+  timestamp: string;
 }
 
 export interface GeneratedDocument {
@@ -74,4 +86,8 @@ export interface GeneratedDocument {
   orderId: string;
   type: "encounter_form" | "patient_invoice";
   generatedAt: string;
+}
+
+export function orderRequiresApproval(order: Order): boolean {
+  return order.lineItems.some(li => li.requiresPriorAuth);
 }

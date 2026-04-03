@@ -1,4 +1,4 @@
-import { Product, FeeSchedule, Order } from "@/lib/types";
+import { Product, FeeSchedule, Order, StatusChange } from "@/lib/types";
 
 export const seedProducts: Product[] = [
   {
@@ -178,6 +178,12 @@ export const seedOrders: Order[] = [
       { id: "doc-001", orderId: "ORD-001", type: "encounter_form", generatedAt: "2026-03-15T10:35:00Z" },
       { id: "doc-002", orderId: "ORD-001", type: "patient_invoice", generatedAt: "2026-03-15T10:35:00Z" },
     ],
+    statusHistory: [
+      { id: "sh-1", fromStatus: "Draft", toStatus: "Submitted", actorName: "Sarah Chen", actorRole: "employee", comment: "", timestamp: "2026-03-15T10:35:00Z" },
+      { id: "sh-2", fromStatus: "Submitted", toStatus: "Approved", actorName: "Alex Rivera", actorRole: "manager", comment: "Approved - standard compression garments", timestamp: "2026-03-16T09:00:00Z" },
+      { id: "sh-3", fromStatus: "Approved", toStatus: "Ordered", actorName: "Sarah Chen", actorRole: "employee", comment: "Order placed with Medi", timestamp: "2026-03-17T11:20:00Z" },
+      { id: "sh-4", fromStatus: "Ordered", toStatus: "Delivered", actorName: "Sarah Chen", actorRole: "employee", comment: "Tracking confirmed delivery", timestamp: "2026-03-22T14:00:00Z" },
+    ],
   },
   {
     id: "ORD-002",
@@ -220,6 +226,10 @@ export const seedOrders: Order[] = [
       { id: "doc-003", orderId: "ORD-002", type: "encounter_form", generatedAt: "2026-03-28T09:20:00Z" },
       { id: "doc-004", orderId: "ORD-002", type: "patient_invoice", generatedAt: "2026-03-28T09:20:00Z" },
     ],
+    statusHistory: [
+      { id: "sh-5", fromStatus: "Draft", toStatus: "Submitted", actorName: "Mike Torres", actorRole: "employee", comment: "", timestamp: "2026-03-28T09:20:00Z" },
+      { id: "sh-6", fromStatus: "Submitted", toStatus: "Approved", actorName: "Alex Rivera", actorRole: "manager", comment: "Approved", timestamp: "2026-03-29T11:00:00Z" },
+    ],
   },
   {
     id: "ORD-003",
@@ -259,6 +269,7 @@ export const seedOrders: Order[] = [
     stripePaymentLink: "",
     notes: "Awaiting measurement form from therapist",
     documents: [],
+    statusHistory: [],
   },
   {
     id: "ORD-004",
@@ -300,6 +311,11 @@ export const seedOrders: Order[] = [
     documents: [
       { id: "doc-005", orderId: "ORD-004", type: "encounter_form", generatedAt: "2026-03-25T11:50:00Z" },
       { id: "doc-006", orderId: "ORD-004", type: "patient_invoice", generatedAt: "2026-03-25T11:50:00Z" },
+    ],
+    statusHistory: [
+      { id: "sh-7", fromStatus: "Draft", toStatus: "Submitted", actorName: "Sarah Chen", actorRole: "employee", comment: "", timestamp: "2026-03-25T12:00:00Z" },
+      { id: "sh-8", fromStatus: "Submitted", toStatus: "Approved", actorName: "Alex Rivera", actorRole: "manager", comment: "Self-pay, no prior auth needed", timestamp: "2026-03-26T10:00:00Z" },
+      { id: "sh-9", fromStatus: "Approved", toStatus: "Ordered", actorName: "Sarah Chen", actorRole: "employee", comment: "Order placed with BSN Jobst", timestamp: "2026-03-30T09:00:00Z" },
     ],
   },
 ];

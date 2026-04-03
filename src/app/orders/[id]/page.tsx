@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
-import { OrderStatus } from "@/lib/types";
+import { OrderStatus, StatusChange, orderRequiresApproval } from "@/lib/types";
 import { formatPatientName } from "@/lib/utils";
 import { DocumentButtons } from "@/components/documents/document-buttons";
 import {
@@ -23,21 +24,31 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   ArrowLeft,
-  ChevronDown,
-  Download,
   ExternalLink,
   FileText,
   StickyNote,
   AlertTriangle,
+  ArrowRight,
+  Clock,
+  CheckCircle2,
+  ShieldCheck,
+  Send,
+  Package,
+  Truck,
 } from "lucide-react";
 
 const STATUS_BADGE_CLASSES: Record<OrderStatus, string> = {
@@ -48,14 +59,6 @@ const STATUS_BADGE_CLASSES: Record<OrderStatus, string> = {
     "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
   Delivered: "bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300",
 };
-
-const ALL_STATUSES: OrderStatus[] = [
-  "Draft",
-  "Submitted",
-  "Approved",
-  "Ordered",
-  "Delivered",
-];
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -69,6 +72,16 @@ function formatDate(iso: string): string {
     month: "short",
     day: "numeric",
     year: "numeric",
+  });
+}
+
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 }
 
@@ -91,6 +104,47 @@ function docTypeLabel(type: string): string {
   }
 }
 
+function getNextStatus(current: OrderStatus): OrderStatus | null {
+  const transitions: Record<OrderStatus, OrderStatus | null> = {
+    Draft: "Submitted",
+    Submitted: "Approved",
+    Approved: "Ordered",
+    Ordered: "Delivered",
+    Delivered: null,
+  };
+  return transitions[current];
+}
+
+function getNextButtonLabel(current: OrderStatus, requiresApproval: boolean): string {
+  switch (current) {
+    case "Draft":
+      return "Submit Order";
+    case "Submitted":
+      return requiresApproval ? "Approve Order" : "Mark as Approved";
+    case "Approved":
+      return "Mark as Ordered";
+    case "Ordered":
+      return "Mark as Delivered";
+    default:
+      return "";
+  }
+}
+
+function getNextButtonIcon(current: OrderStatus) {
+  switch (current) {
+    case "Draft":
+      return Send;
+    case "Submitted":
+      return ShieldCheck;
+    case "Approved":
+      return Package;
+    case "Ordered":
+      return Truck;
+    default:
+      return ArrowRight;
+  }
+}
+
 export default function OrderDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -98,6 +152,12 @@ export default function OrderDetailPage() {
   const updateOrderStatus = useAppStore((s) => s.updateOrderStatus);
 
   const order = orders.find((o) => o.id === params.id);
+
+  // Dialog state
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  const [actorName, setActorName] = useState("");
+  const [comment, setComment] = useState("");
 
   if (!order) {
     return (
@@ -114,6 +174,11 @@ export default function OrderDetailPage() {
     );
   }
 
+  const nextStatus = getNextStatus(order.status);
+  const requiresApproval = orderRequiresApproval(order);
+  const priorAuthItems = order.lineItems.filter((li) => li.requiresPriorAuth);
+  const isApprovalTransition = order.status === "Submitted" && requiresApproval;
+
   // Computed totals from line items
   const totals = order.lineItems.reduce(
     (acc, item) => ({
@@ -125,6 +190,70 @@ export default function OrderDetailPage() {
     }),
     { cost: 0, billable: 0, patientResp: 0, margin: 0 }
   );
+
+  function handleNextStepClick() {
+    if (!nextStatus) return;
+    setActorName("");
+    setComment("");
+    if (isApprovalTransition) {
+      setShowApprovalDialog(true);
+    } else {
+      setShowStatusDialog(true);
+    }
+  }
+
+  function handleStatusConfirm() {
+    if (!order || !nextStatus || !actorName.trim()) return;
+    const statusChange: StatusChange = {
+      id: `sh-${Date.now()}`,
+      fromStatus: order.status,
+      toStatus: nextStatus,
+      actorName: actorName.trim(),
+      actorRole: "employee",
+      comment: comment.trim(),
+      timestamp: new Date().toISOString(),
+    };
+    updateOrderStatus(order.id, statusChange);
+    setShowStatusDialog(false);
+    setActorName("");
+    setComment("");
+  }
+
+  function handleApprovalConfirm() {
+    if (!order || !actorName.trim()) return;
+    const statusChange: StatusChange = {
+      id: `sh-${Date.now()}`,
+      fromStatus: "Submitted",
+      toStatus: "Approved",
+      actorName: actorName.trim(),
+      actorRole: "manager",
+      comment: comment.trim(),
+      timestamp: new Date().toISOString(),
+    };
+    updateOrderStatus(order.id, statusChange);
+    setShowApprovalDialog(false);
+    setActorName("");
+    setComment("");
+  }
+
+  function handleRejection() {
+    if (!order || !actorName.trim()) return;
+    const statusChange: StatusChange = {
+      id: `sh-${Date.now()}`,
+      fromStatus: "Submitted",
+      toStatus: "Submitted",
+      actorName: actorName.trim(),
+      actorRole: "manager",
+      comment: comment.trim() ? `REJECTED: ${comment.trim()}` : "REJECTED",
+      timestamp: new Date().toISOString(),
+    };
+    updateOrderStatus(order.id, statusChange);
+    setShowApprovalDialog(false);
+    setActorName("");
+    setComment("");
+  }
+
+  const sortedHistory = [...(order.statusHistory || [])].reverse();
 
   return (
     <div className="space-y-6">
@@ -149,34 +278,19 @@ export default function OrderDetailPage() {
             </Badge>
           </div>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            className="inline-flex h-9 items-center gap-1 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            Update Status
-            <ChevronDown className="h-4 w-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {ALL_STATUSES.map((status) => (
-              <DropdownMenuItem
-                key={status}
-                onClick={() => updateOrderStatus(order.id, status)}
-                disabled={order.status === status}
-              >
-                <Badge
-                  className={`mr-2 ${STATUS_BADGE_CLASSES[status]}`}
-                  variant="secondary"
-                >
-                  {status}
-                </Badge>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {nextStatus && (
+          <Button onClick={handleNextStepClick}>
+            {(() => {
+              const Icon = getNextButtonIcon(order.status);
+              return <Icon className="mr-2 h-4 w-4" />;
+            })()}
+            {getNextButtonLabel(order.status, requiresApproval)}
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left column: patient info + line items + documents + notes */}
+        {/* Left column: patient info + line items + documents + notes + activity */}
         <div className="space-y-6 lg:col-span-2">
           {/* Patient Information */}
           <Card>
@@ -381,6 +495,101 @@ export default function OrderDetailPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Order Activity Timeline */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Order Activity
+              </CardTitle>
+              <CardDescription>
+                Status change history for this order.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {sortedHistory.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No status changes recorded yet.
+                </p>
+              ) : (
+                <div className="relative">
+                  {/* Vertical timeline line */}
+                  <div className="absolute left-[9px] top-2 bottom-2 w-px bg-border" />
+                  <div className="space-y-6">
+                    {sortedHistory.map((entry, idx) => (
+                      <div key={entry.id} className="relative flex gap-4">
+                        {/* Timeline dot */}
+                        <div className="relative z-10 mt-1.5 flex-shrink-0">
+                          <div
+                            className={`h-[18px] w-[18px] rounded-full border-2 ${
+                              idx === 0
+                                ? "border-primary bg-primary"
+                                : "border-muted-foreground/30 bg-background"
+                            }`}
+                          >
+                            {idx === 0 && (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-primary-foreground m-px" />
+                            )}
+                          </div>
+                        </div>
+                        {/* Content */}
+                        <div className="flex-1 min-w-0 pb-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {entry.fromStatus === entry.toStatus ? (
+                              <Badge
+                                className={STATUS_BADGE_CLASSES[entry.fromStatus]}
+                                variant="secondary"
+                              >
+                                {entry.fromStatus}
+                              </Badge>
+                            ) : (
+                              <>
+                                <Badge
+                                  className={STATUS_BADGE_CLASSES[entry.fromStatus]}
+                                  variant="secondary"
+                                >
+                                  {entry.fromStatus}
+                                </Badge>
+                                <ArrowRight className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                <Badge
+                                  className={STATUS_BADGE_CLASSES[entry.toStatus]}
+                                  variant="secondary"
+                                >
+                                  {entry.toStatus}
+                                </Badge>
+                              </>
+                            )}
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+                            <span className="font-medium">{entry.actorName}</span>
+                            <Badge
+                              variant="outline"
+                              className={`text-[10px] px-1.5 py-0 ${
+                                entry.actorRole === "manager"
+                                  ? "border-blue-300 text-blue-600"
+                                  : "border-gray-300 text-gray-500"
+                              }`}
+                            >
+                              {entry.actorRole === "manager" ? "Manager" : "Employee"}
+                            </Badge>
+                            <span className="text-muted-foreground">
+                              {formatDateTime(entry.timestamp)}
+                            </span>
+                          </div>
+                          {entry.comment && (
+                            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                              {entry.comment}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right column: Billing Summary */}
@@ -476,6 +685,137 @@ export default function OrderDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Standard Status Change Dialog */}
+      <Dialog open={showStatusDialog} onOpenChange={setShowStatusDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Order Status</DialogTitle>
+            <DialogDescription>
+              Moving from{" "}
+              <Badge
+                className={`mx-1 ${STATUS_BADGE_CLASSES[order.status]}`}
+                variant="secondary"
+              >
+                {order.status}
+              </Badge>{" "}
+              to{" "}
+              {nextStatus && (
+                <Badge
+                  className={`mx-1 ${STATUS_BADGE_CLASSES[nextStatus]}`}
+                  variant="secondary"
+                >
+                  {nextStatus}
+                </Badge>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="actor-name">Your Name</Label>
+              <Input
+                id="actor-name"
+                placeholder="Enter your name"
+                value={actorName}
+                onChange={(e) => setActorName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status-comment">Comment (optional)</Label>
+              <Textarea
+                id="status-comment"
+                placeholder="Add a note about this status change..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowStatusDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleStatusConfirm}
+              disabled={!actorName.trim()}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Approval Dialog (for prior-auth orders) */}
+      <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Manager Approval Required</DialogTitle>
+            <DialogDescription>
+              Review and approve this order for processing.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {/* Prior auth warning */}
+            <div className="rounded-md border border-amber-300 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-950">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                    This order contains items requiring prior authorization:
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {priorAuthItems.map((item) => (
+                      <li key={item.id} className="text-sm text-amber-700 dark:text-amber-300">
+                        {item.productName}{" "}
+                        <code className="rounded bg-amber-100 px-1 py-0.5 text-xs dark:bg-amber-900">
+                          {item.hcpcsCode}
+                        </code>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="manager-name">Manager Name</Label>
+              <Input
+                id="manager-name"
+                placeholder="Enter manager name"
+                value={actorName}
+                onChange={(e) => setActorName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="approval-notes">Approval Notes (optional)</Label>
+              <Textarea
+                id="approval-notes"
+                placeholder="e.g., Prior auth obtained, reference #12345"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950"
+              onClick={handleRejection}
+              disabled={!actorName.trim()}
+            >
+              Reject
+            </Button>
+            <Button
+              className="bg-green-600 text-white hover:bg-green-700"
+              onClick={handleApprovalConfirm}
+              disabled={!actorName.trim()}
+            >
+              Approve Order
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
-import { OrderStatus } from "@/lib/types";
+import { OrderStatus, orderRequiresApproval } from "@/lib/types";
 import { formatPatientName } from "@/lib/utils";
 import {
   Card,
@@ -34,10 +34,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -47,6 +43,7 @@ import {
   PackageCheck,
   MoreHorizontal,
   Search,
+  ShieldAlert,
 } from "lucide-react";
 
 const STATUS_BADGE_CLASSES: Record<OrderStatus, string> = {
@@ -84,7 +81,6 @@ function formatDate(iso: string): string {
 export default function DashboardPage() {
   const router = useRouter();
   const orders = useAppStore((s) => s.orders);
-  const updateOrderStatus = useAppStore((s) => s.updateOrderStatus);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
@@ -96,6 +92,9 @@ export default function DashboardPage() {
     ["Submitted", "Approved", "Ordered"].includes(o.status)
   ).length;
   const deliveredCount = orders.filter((o) => o.status === "Delivered").length;
+  const awaitingApprovalCount = orders.filter(
+    (o) => o.status === "Submitted" && orderRequiresApproval(o)
+  ).length;
 
   // Filtered orders
   const filteredOrders = useMemo(() => {
@@ -115,24 +114,35 @@ export default function DashboardPage() {
       count: totalOrders,
       icon: FileText,
       color: "text-slate-600",
+      subtitle: null as string | null,
     },
     {
       label: "Draft Orders",
       count: draftCount,
       icon: ClipboardList,
       color: "text-gray-500",
+      subtitle: null as string | null,
     },
     {
       label: "In Progress",
       count: inProgressCount,
       icon: Loader2,
       color: "text-blue-600",
+      subtitle: null as string | null,
     },
     {
       label: "Delivered",
       count: deliveredCount,
       icon: PackageCheck,
       color: "text-teal-600",
+      subtitle: null as string | null,
+    },
+    {
+      label: "Awaiting Approval",
+      count: awaitingApprovalCount,
+      icon: ShieldAlert,
+      color: "text-amber-600",
+      subtitle: "Requires prior auth",
     },
   ];
 
@@ -146,7 +156,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {summaryCards.map((card) => (
           <Card key={card.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -157,6 +167,11 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{card.count}</div>
+              {card.subtitle && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {card.subtitle}
+                </p>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -279,30 +294,6 @@ export default function DashboardPage() {
                             >
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuSub>
-                              <DropdownMenuSubTrigger>
-                                Update Status
-                              </DropdownMenuSubTrigger>
-                              <DropdownMenuSubContent>
-                                {ALL_STATUSES.map((status) => (
-                                  <DropdownMenuItem
-                                    key={status}
-                                    onClick={() =>
-                                      updateOrderStatus(order.id, status)
-                                    }
-                                    disabled={order.status === status}
-                                  >
-                                    <Badge
-                                      className={`mr-2 ${STATUS_BADGE_CLASSES[status]}`}
-                                      variant="secondary"
-                                    >
-                                      {status}
-                                    </Badge>
-                                  </DropdownMenuItem>
-                                ))}
-                              </DropdownMenuSubContent>
-                            </DropdownMenuSub>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

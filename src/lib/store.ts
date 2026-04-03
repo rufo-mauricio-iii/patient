@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { Product, FeeSchedule, Order, OrderStatus } from "@/lib/types";
+import { Product, FeeSchedule, Order, OrderStatus, StatusChange } from "@/lib/types";
 import { seedProducts, seedFeeSchedules, seedOrders } from "@/data/seed";
 
 interface AppStore {
@@ -21,7 +21,7 @@ interface AppStore {
   orders: Order[];
   addOrder: (order: Order) => void;
   updateOrder: (id: string, order: Partial<Order>) => void;
-  updateOrderStatus: (id: string, status: OrderStatus) => void;
+  updateOrderStatus: (id: string, statusChange: StatusChange) => void;
 
   // Lookup helpers
   getProduct: (id: string) => Product | undefined;
@@ -59,10 +59,17 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set((state) => ({
       orders: state.orders.map((o) => (o.id === id ? { ...o, ...updates } : o)),
     })),
-  updateOrderStatus: (id, status) =>
+  updateOrderStatus: (id, statusChange) =>
     set((state) => ({
       orders: state.orders.map((o) =>
-        o.id === id ? { ...o, status, updatedAt: new Date().toISOString() } : o
+        o.id === id
+          ? {
+              ...o,
+              status: statusChange.toStatus,
+              updatedAt: new Date().toISOString(),
+              statusHistory: [...o.statusHistory, statusChange],
+            }
+          : o
       ),
     })),
 

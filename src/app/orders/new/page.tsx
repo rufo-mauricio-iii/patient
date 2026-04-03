@@ -306,6 +306,7 @@ export default function NewOrderPage() {
       stripePaymentLink: stripePaymentLink.trim(),
       notes: notes.trim(),
       documents: [],
+      statusHistory: [],
     };
 
     addOrder(order);
