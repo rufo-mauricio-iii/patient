@@ -153,12 +153,34 @@ Alex's team manages patient orders and billing through a fragile Excel spreadshe
 
 ## Phased Roadmap
 
-| Sprint | Theme | Key Deliverables | Value Delivered |
-|---|---|---|---|
-| **Sprint 1** (Weeks 1-2) | **Replace the Spreadsheet** | Order entry form with auto-calculations, encounter form + invoice generation, product & fee schedule admin (with CSV bulk upload), measurement form upload, order dashboard, linear status workflow with approval gate, activity timeline | Team stops using Excel. Orders are structured, calculations are reliable, documents auto-generate, status is tracked. |
-| **Sprint 2** (Weeks 3-4) | **Document & Payment Integrations** | DocuSign API (send invoice for signature directly from app), Stripe API (generate payment links automatically), POD generation + email, PDF export improvements | Team stops manually uploading to DocuSign and creating Stripe links. Document lifecycle is fully automated. |
-| **Sprint 3** (Weeks 5-6) | **Workflow Automation & Access Control** | User authentication + role-based access (employee vs. manager), automated vendor email dispatch (detect vendor → send order to correct email), email notifications for status changes, prior auth tracking enhancements | Manager approval is enforced by the system. Vendor orders are automated. Team gets notified of status changes. |
-| **Sprint 4** (Weeks 7-8) | **Optimization & Intelligence** | Analytics dashboard (order volume, margins, turnaround times), reporting (by payer, by vendor, by product), bulk operations, advanced search/filters, audit trail export, performance optimization with real database (PostgreSQL) | Alex has visibility into business performance. Team can operate at scale. |
+### Sprint 1 (Weeks 1-2) — Replace the Spreadsheet
+**Why this first:** Everything downstream depends on reliable, structured order data. The spreadsheet is the #1 daily pain point — fragile formulas, hidden tables, no validation. Fix this and every other improvement has a foundation.
+
+- Order entry form with auto-calculated billing (replaces Excel)
+- Product & fee schedule admin tables with CSV bulk upload (replaces hidden lookup tables)
+- Encounter form + patient invoice auto-generation (replaces manual document assembly)
+- Measurement form upload per line item (unblocks ordering for custom garments)
+- Order dashboard with search, filters, and status tracking
+- Linear status workflow with manager approval gate for prior-auth items
+- Activity timeline with actor name, role, and comments
+
+### Sprint 2 (Weeks 3-4) — Document & Payment Integrations
+**Why next:** With Sprint 1 live, the biggest remaining manual steps are uploading invoices to DocuSign and creating Stripe payment links. These are the highest-frequency repetitive tasks left — the team does them for every single order.
+
+- DocuSign API — send patient invoice for signature directly from the app
+- Stripe API — auto-generate payment links instead of manual creation
+- Proof of Delivery generation + email to patient after delivery
+- PDF export improvements (true PDF download vs. print-to-PDF)
+
+### Sprint 3 (Weeks 5-6) — Workflow Automation & Access Control
+**Why next:** Once documents and payments flow automatically, the remaining bottleneck is manual vendor ordering and the lack of enforced permissions. Alex mentioned her team re-enters order data into vendor portals — this sprint eliminates that entirely.
+
+- User authentication + role-based access (employee vs. manager login)
+- Automated vendor email dispatch — detect vendor from order, send order to correct email (e.g., Medi orders go to Medi's order inbox)
+- Email notifications for status changes
+- Prior authorization tracking enhancements
+
+*Note: Sprint 4+ scope to be determined based on client feedback after Sprint 3 delivery. Potential areas include analytics/reporting, insurance billing integrations, and vendor portal API connections.*
 
 ---
 
