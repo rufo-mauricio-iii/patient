@@ -469,14 +469,8 @@ export default function OrderDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle>Documents</CardTitle>
-              <CardDescription>
-                Generated documents for this order.
-              </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Generate and download order documents.
-              </p>
               <DocumentButtons order={order} />
             </CardContent>
           </Card>

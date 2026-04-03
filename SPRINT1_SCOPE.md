@@ -143,10 +143,34 @@ Alex's team manages patient orders and billing through a fragile Excel spreadshe
 | DocuSign integration | Employee uploads PDF to DocuSign manually; works today | Sprint 2 |
 | Stripe integration | Employee pastes link manually; low friction bridge | Sprint 2 |
 | Proof of Delivery generation | Triggered by delivery event, not order creation | Sprint 2 |
-| Role-based authentication / login | Name-based actor tracking sufficient for now | Sprint 3 |
+| Role-based authentication / login | Alex's team is small and trust-based. Name-based actor tracking with activity timeline provides accountability without the engineering cost of auth (login, passwords, sessions, roles, protected routes). Auth becomes necessary as the team scales beyond ~15 people. | Sprint 3 |
 | Automated vendor email dispatch | Needs vendor mapping + email templates | Sprint 3 |
 | Measurement form parsing/validation | We store the file but don't extract data from it | Sprint 3+ |
 | Insurance billing/claims submission | Outside core scope, complex payer integrations | Sprint 4+ |
+
+---
+
+## Key Scoping Decisions & Reasoning
+
+### 1. Name-Based Tracking over Full Authentication
+**Decision:** No login system in Sprint 1. Status changes capture the actor's typed name and role.
+**Why:** Alex's team is small and trust-based — her current SharePoint approval has the same "anyone can click approve" dynamic. Adding auth (login, passwords, sessions, role assignment, protected routes) would consume ~30-40% of Sprint 1's engineering budget to protect against a problem that doesn't exist at their current team size. The activity timeline provides an audit trail with accountability. Auth becomes necessary when the team scales beyond ~15 people — that's Sprint 3.
+
+### 2. CSV Bulk Upload over Manual Entry Only
+**Decision:** Both products and fee schedules support CSV template download + bulk upload.
+**Why:** A medical supply distributor carries hundreds of SKUs across multiple vendors. Manual entry is impractical for onboarding. Medicare publishes fee schedules as downloadable CSV files quarterly — the system should accept them directly.
+
+### 3. Document Generation over Integration
+**Decision:** Auto-generate encounter forms and invoices as downloadable documents. No DocuSign or Stripe API integration yet.
+**Why:** The highest-value improvement is eliminating manual document assembly — the team currently builds these by hand from spreadsheet data. The existing DocuSign/Stripe workflow (upload PDF, create payment link) still works. Integration saves a few clicks per order; generation saves 15-20 minutes. Generation first, integration in Sprint 2.
+
+### 4. Approval Gate over Full Workflow Engine
+**Decision:** Prior-auth orders get a distinct approval dialog with manager name capture. No role-based enforcement.
+**Why:** The approval step is qualitatively different from other status changes — it requires someone with authority to review and sign off. Making it visually and procedurally distinct (different dialog, item review, approve/reject) signals that this is a manager action. But enforcing it via roles requires auth infrastructure we deliberately deferred. The current approach mirrors SharePoint's trust-based model.
+
+### 5. Measurement Form Upload over Parsing
+**Decision:** Accept file uploads (PDF, JPG, PNG) per line item. No extraction or validation of form contents.
+**Why:** Each vendor (Medi, Juzo, Solaris) has their own proprietary measurement form format. Parsing these would require vendor-specific templates and OCR — significant complexity for marginal value. The immediate need is simply: "attach the therapist's form to this order so we stop tracking it in email." Storage and retrieval is Sprint 1; intelligent processing is Sprint 3+.
 | Analytics & reporting dashboard | Need real usage data first | Sprint 4 |
 
 ---
