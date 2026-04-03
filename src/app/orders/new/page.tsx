@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import type { Order, OrderLineItem } from "@/lib/types";
@@ -27,7 +27,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 
-import { Trash2, Plus, AlertTriangle } from "lucide-react";
+import { Trash2, Plus, AlertTriangle, Upload, FileText, X } from "lucide-react";
 
 // ---- helpers ----
 
@@ -42,10 +42,18 @@ function generateOrderId(): string {
 
 // ---- types for local state ----
 
+interface MeasurementFileData {
+  name: string;
+  size: number;
+  type: string;
+  dataUrl: string;
+}
+
 interface LineItemDraft {
   key: string; // local key for React list rendering
   productId: string;
   quantity: number;
+  measurementFile?: MeasurementFileData | null;
 }
 
 const PAYERS = ["Medicare", "Blue Cross", "Aetna", "UnitedHealthcare"] as const;
@@ -101,6 +109,59 @@ export default function NewOrderPage() {
     },
     []
   );
+
+  // ---- measurement file helpers ----
+
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [fileErrors, setFileErrors] = useState<Record<string, string>>({});
+
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+  const handleFileSelect = useCallback(
+    (key: string, file: File) => {
+      if (file.size > MAX_FILE_SIZE) {
+        setFileErrors((prev) => ({ ...prev, [key]: "File exceeds 5MB limit" }));
+        return;
+      }
+      setFileErrors((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        setLineItems((prev) =>
+          prev.map((li) =>
+            li.key === key
+              ? {
+                  ...li,
+                  measurementFile: {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    dataUrl,
+                  },
+                }
+              : li
+          )
+        );
+      };
+      reader.readAsDataURL(file);
+    },
+    []
+  );
+
+  const removeMeasurementFile = useCallback((key: string) => {
+    setLineItems((prev) =>
+      prev.map((li) =>
+        li.key === key ? { ...li, measurementFile: null } : li
+      )
+    );
+    const input = fileInputRefs.current[key];
+    if (input) input.value = "";
+  }, []);
 
   // ---- computed line items with pricing ----
 
@@ -220,6 +281,7 @@ export default function NewOrderPage() {
         margin: li.margin,
         requiresMeasurement: li.product!.requiresMeasurement,
         requiresPriorAuth: li.product!.requiresPriorAuth,
+        measurementFile: li.measurementFile ?? null,
       }));
 
     const order: Order = {
@@ -594,6 +656,55 @@ export default function NewOrderPage() {
                       </span>
                     )}
                   </div>
+
+                  {/* Measurement file upload */}
+                  {li.product.requiresMeasurement && (
+                    <div className="space-y-2">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="hidden"
+                        ref={(el) => {
+                          fileInputRefs.current[li.key] = el;
+                        }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileSelect(li.key, file);
+                        }}
+                      />
+                      {li.measurementFile ? (
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{li.measurementFile.name}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => removeMeasurementFile(li.key)}
+                          >
+                            <X className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fileInputRefs.current[li.key]?.click()}
+                          >
+                            <Upload className="mr-2 h-3.5 w-3.5" />
+                            Upload Measurement Form
+                          </Button>
+                          <p className="text-xs text-amber-600">
+                            Measurement form required — upload before submitting
+                          </p>
+                        </>
+                      )}
+                      {fileErrors[li.key] && (
+                        <p className="text-xs text-destructive">{fileErrors[li.key]}</p>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </div>

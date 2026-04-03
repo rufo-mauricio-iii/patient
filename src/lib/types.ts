@@ -36,6 +36,7 @@ export interface OrderLineItem {
   margin: number;
   requiresMeasurement: boolean;
   requiresPriorAuth: boolean;
+  measurementFile?: { name: string; size: number; type: string; dataUrl: string } | null;
 }
 
 export interface Order {

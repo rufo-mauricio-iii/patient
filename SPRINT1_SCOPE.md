@@ -91,9 +91,10 @@ Alex's team manages patient orders and billing through a fragile Excel spreadshe
 ### Sprint 1 Features
 
 #### A. Order Entry Form
-1. **Patient Info** — Name, DOB, address, shipping address, insurance/payer (dropdown), self-pay checkbox
+1. **Patient Info** — First name, middle name, last name, suffix, DOB, address, shipping address, insurance/payer (dropdown), self-pay checkbox
 2. **Product Selection** — Select from product dropdown (pulls from Product Table), each line item auto-fills: vendor, HCPCS code, cost. Quantity input. Self-pay → defaults to MSRP.
-3. **Visual Flags** — "Measurement form required" indicator, "Prior auth required" indicator (informational only in Sprint 1)
+3. **Visual Flags** — "Measurement form required" indicator, "Prior auth required" indicator
+4. **Measurement Form Upload** — Per line item file upload (PDF, JPG, PNG) for products flagged as requiring measurement. Therapist measurement forms are attached directly to the order line item. Viewable/downloadable from order detail page.
 4. **Billing Summary (auto-calculated):**
    - Cost per unit (from Product Table)
    - Billable amount (from Fee Schedule Table)
@@ -112,6 +113,8 @@ Alex's team manages patient orders and billing through a fragile Excel spreadshe
 #### C. Admin: Reference Data Tables
 1. **Product Table (CRUD)** — Product name, vendor, HCPCS code, cost, MSRP, category, requires measurement (Y/N), requires prior auth (Y/N)
 2. **Fee Schedule Table (CRUD)** — Payer, HCPCS code, state, reimbursement rate, multipliers
+3. **CSV Bulk Upload for Products** — Download standardized CSV template, upload populated file, preview/validate before import, flag error rows, bulk insert. Critical for onboarding — distributors carry hundreds of SKUs.
+4. **CSV Bulk Upload for Fee Schedules** — Same template/upload/validate flow. Medicare publishes fee schedules as downloadable CSV files quarterly; this supports direct import of that data.
 
 #### D. Order Dashboard
 1. **Order List** — All orders in a searchable, filterable table
@@ -130,7 +133,7 @@ Alex's team manages patient orders and billing through a fragile Excel spreadshe
 | Stripe integration | Employee pastes link manually; low friction | Sprint 2-3 |
 | Manager approval workflow | Needs role-based permissions; SharePoint still works | Sprint 3 |
 | Automated vendor emails | Needs vendor mapping + templates; manual portal entry continues | Sprint 4 |
-| File uploads (measurement forms) | Flag is sufficient for Sprint 1; upload adds complexity | Sprint 2 |
+| Measurement form parsing/validation | We store the file but don't extract data from it | Sprint 2+ |
 | Proof of Delivery generation | Triggered by delivery event, not order creation | Sprint 2 |
 | Insurance billing/claims | Outside core scope | Sprint 4+ |
 
@@ -171,7 +174,8 @@ Alex's team manages patient orders and billing through a fragile Excel spreadshe
 
 ### Order
 - id, status, created_at, updated_at
-- patient_name, patient_dob, patient_address, shipping_address
+- patient_first_name, patient_middle_name, patient_last_name, patient_suffix
+- patient_dob, patient_address, shipping_address
 - insurance_payer, is_self_pay
 - stripe_payment_link
 - notes
@@ -180,6 +184,7 @@ Alex's team manages patient orders and billing through a fragile Excel spreadshe
 - id, order_id, product_id
 - quantity, unit_cost, billable_amount, patient_responsibility, margin
 - requires_measurement_flag, requires_prior_auth_flag
+- measurement_file (file reference — PDF/JPG/PNG, optional, for items requiring measurement)
 
 ### Generated Documents
 - id, order_id, type (encounter_form | patient_invoice), generated_at, pdf_url

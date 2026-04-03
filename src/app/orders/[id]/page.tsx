@@ -36,6 +36,7 @@ import {
   ExternalLink,
   FileText,
   StickyNote,
+  AlertTriangle,
 } from "lucide-react";
 
 const STATUS_BADGE_CLASSES: Record<OrderStatus, string> = {
@@ -301,6 +302,24 @@ export default function OrderDetailPage() {
                                 Prior Auth
                               </Badge>
                             )}
+                            {item.measurementFile ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-6 px-2 text-[10px]"
+                                onClick={() => {
+                                  window.open(item.measurementFile!.dataUrl, "_blank");
+                                }}
+                              >
+                                <FileText className="mr-1 h-3 w-3" />
+                                View Measurement Form
+                              </Button>
+                            ) : item.requiresMeasurement ? (
+                              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 text-[10px]">
+                                <AlertTriangle className="mr-1 h-3 w-3" />
+                                Measurement Pending
+                              </Badge>
+                            ) : null}
                           </div>
                         </TableCell>
                       </TableRow>
