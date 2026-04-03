@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { OrderStatus } from "@/lib/types";
+import { formatPatientName } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -101,7 +102,7 @@ export default function DashboardPage() {
     return orders.filter((order) => {
       const matchesSearch =
         searchQuery === "" ||
-        order.patientName.toLowerCase().includes(searchQuery.toLowerCase());
+        formatPatientName(order).toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus =
         statusFilter === "All" || order.status === statusFilter;
       return matchesSearch && matchesStatus;
@@ -233,7 +234,7 @@ export default function DashboardPage() {
                       <TableCell className="font-medium text-primary">
                         {order.id}
                       </TableCell>
-                      <TableCell>{order.patientName}</TableCell>
+                      <TableCell>{formatPatientName(order)}</TableCell>
                       <TableCell>
                         {order.isSelfPay ? (
                           <Badge

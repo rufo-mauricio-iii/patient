@@ -4,6 +4,10 @@ function formatCurrency(amount: number): string {
   return `$${amount.toFixed(2)}`;
 }
 
+function formatName(order: Order): string {
+  return [order.patientFirstName, order.patientMiddleName, order.patientLastName, order.patientSuffix].filter(Boolean).join(" ");
+}
+
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
   return date.toLocaleDateString("en-US", {
@@ -233,7 +237,7 @@ export function generateEncounterForm(order: Order): string {
   <div class="info-grid">
     <div class="info-section">
       <h3>Patient Information</h3>
-      <p><strong>Name:</strong> ${order.patientName}</p>
+      <p><strong>Name:</strong> ${formatName(order)}</p>
       <p><strong>Date of Birth:</strong> ${formatDob(order.patientDob)}</p>
       <p><strong>Address:</strong> ${order.patientAddress}</p>
     </div>
@@ -479,7 +483,7 @@ export function generatePatientInvoice(order: Order): string {
 
   <div class="bill-to">
     <h3>Bill To</h3>
-    <p style="font-weight: 600;">${order.patientName}</p>
+    <p style="font-weight: 600;">${formatName(order)}</p>
     <p>${order.patientAddress}</p>
   </div>
 

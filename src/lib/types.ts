@@ -44,7 +44,10 @@ export interface Order {
   createdAt: string;
   updatedAt: string;
   // Patient info
-  patientName: string;
+  patientFirstName: string;
+  patientMiddleName: string;
+  patientLastName: string;
+  patientSuffix: string;
   patientDob: string;
   patientAddress: string;
   shippingAddress: string;

@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { OrderStatus } from "@/lib/types";
+import { formatPatientName } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -184,7 +185,7 @@ export default function OrderDetailPage() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-sm text-muted-foreground">Patient Name</p>
-                  <p className="font-medium">{order.patientName}</p>
+                  <p className="font-medium">{formatPatientName(order)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Date of Birth</p>

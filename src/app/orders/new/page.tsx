@@ -58,7 +58,10 @@ export default function NewOrderPage() {
   const { products, feeSchedules, addOrder } = useAppStore();
 
   // Patient info
-  const [patientName, setPatientName] = useState("");
+  const [patientFirstName, setPatientFirstName] = useState("");
+  const [patientMiddleName, setPatientMiddleName] = useState("");
+  const [patientLastName, setPatientLastName] = useState("");
+  const [patientSuffix, setPatientSuffix] = useState("");
   const [patientDob, setPatientDob] = useState("");
   const [patientAddress, setPatientAddress] = useState("");
   const [shippingAddress, setShippingAddress] = useState("");
@@ -176,7 +179,8 @@ export default function NewOrderPage() {
 
   function validate(): boolean {
     const newErrors: Record<string, string> = {};
-    if (!patientName.trim()) newErrors.patientName = "Patient name is required";
+    if (!patientFirstName.trim()) newErrors.patientFirstName = "First name is required";
+    if (!patientLastName.trim()) newErrors.patientLastName = "Last name is required";
     if (!patientDob) newErrors.patientDob = "Date of birth is required";
     if (!patientAddress.trim())
       newErrors.patientAddress = "Patient address is required";
@@ -223,7 +227,10 @@ export default function NewOrderPage() {
       status: "Draft",
       createdAt: now,
       updatedAt: now,
-      patientName: patientName.trim(),
+      patientFirstName: patientFirstName.trim(),
+      patientMiddleName: patientMiddleName.trim(),
+      patientLastName: patientLastName.trim(),
+      patientSuffix: patientSuffix.trim(),
       patientDob,
       patientAddress: patientAddress.trim(),
       shippingAddress: resolvedShipping.trim(),
@@ -266,24 +273,65 @@ export default function NewOrderPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Row 1: Name + DOB */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Row 1: Name fields */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="patientName">
-                Patient Name <span className="text-destructive">*</span>
+              <Label htmlFor="patientFirstName">
+                First Name <span className="text-destructive">*</span>
               </Label>
               <Input
-                id="patientName"
-                placeholder="Full name"
-                value={patientName}
+                id="patientFirstName"
+                placeholder="First name"
+                value={patientFirstName}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPatientName(e.target.value)
+                  setPatientFirstName(e.target.value)
                 }
               />
-              {errors.patientName && (
-                <p className="text-xs text-destructive">{errors.patientName}</p>
+              {errors.patientFirstName && (
+                <p className="text-xs text-destructive">{errors.patientFirstName}</p>
               )}
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="patientMiddleName">Middle Name</Label>
+              <Input
+                id="patientMiddleName"
+                placeholder="Middle name"
+                value={patientMiddleName}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPatientMiddleName(e.target.value)
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="patientLastName">
+                Last Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="patientLastName"
+                placeholder="Last name"
+                value={patientLastName}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPatientLastName(e.target.value)
+                }
+              />
+              {errors.patientLastName && (
+                <p className="text-xs text-destructive">{errors.patientLastName}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="patientSuffix">Suffix</Label>
+              <Input
+                id="patientSuffix"
+                placeholder="Jr., III, etc."
+                value={patientSuffix}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPatientSuffix(e.target.value)
+                }
+              />
+            </div>
+          </div>
+          {/* Row 2: DOB */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="patientDob">
                 Date of Birth <span className="text-destructive">*</span>
