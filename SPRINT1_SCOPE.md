@@ -90,20 +90,23 @@ Alex's team manages patient orders and billing through a fragile Excel spreadshe
 
 ### Sprint 1 Features
 
-#### A. Order Entry Form
-1. **Patient Info** — First name, middle name, last name, suffix, DOB, address, shipping address, insurance/payer (dropdown), self-pay checkbox
+#### A. Order Entry Form (Two-Column Layout)
+**Left column:**
+1. **Patient Info** — First name, middle name, last name, suffix, DOB, address, shipping address (with "same as patient" checkbox), insurance/payer (dropdown), state, self-pay checkbox
 2. **Product Selection** — Select from product dropdown (pulls from Product Table), each line item auto-fills: vendor, HCPCS code, cost. Quantity input. Self-pay → defaults to MSRP.
-3. **Visual Flags** — "Measurement form required" indicator, "Prior auth required" indicator
-4. **Measurement Form Upload** — Per line item file upload (PDF, JPG, PNG) for products flagged as requiring measurement. Therapist measurement forms are attached directly to the order line item. Viewable/downloadable from order detail page.
-4. **Billing Summary (auto-calculated):**
+3. **Visual Flags** — "Measurement form required" (yellow badge), "Prior auth required" (red badge) per line item
+4. **Measurement Form Upload** — Per line item file upload (PDF, JPG, PNG, max 5MB) for products flagged as requiring measurement. "Measurement Pending" warning when file not yet uploaded. Viewable/downloadable from order detail page.
+
+**Right column (sticky sidebar):**
+5. **Billing Summary (auto-calculated, live-updating):**
    - Cost per unit (from Product Table)
    - Billable amount (from Fee Schedule Table)
-   - Patient responsibility (calculated)
-   - Company margin (calculated)
-   - Total order value
-5. **Stripe Payment Link Field** — Employee pastes their Stripe link, gets embedded in generated invoice
-6. **Form Validation** — Required fields, valid product/payer combinations, immediate error feedback
-7. **Save Order** — Creates order record with status "Draft"
+   - Patient responsibility (calculated at 20% copay)
+   - Company margin (calculated) — prominently displayed
+   - Shows $0.00 when no line items added
+6. **Additional Info** — Stripe payment link field, Notes textarea
+7. **Form Validation** — Required fields (first name, last name, DOB, address), at least one line item, fee schedule match warnings
+8. **Save as Draft** — Creates order with status "Draft" and empty status history
 
 #### B. Document Auto-Generation (on order save)
 1. **Encounter Form (PDF)** — Internal summary of the complete order. Auto-generated from order data. Employee downloads and uploads to patient record system as they do today.
@@ -117,11 +120,19 @@ Alex's team manages patient orders and billing through a fragile Excel spreadshe
 4. **CSV Bulk Upload for Fee Schedules** — Same template/upload/validate flow. Medicare publishes fee schedules as downloadable CSV files quarterly; this supports direct import of that data.
 
 #### D. Order Dashboard
-1. **Order List** — All orders in a searchable, filterable table
-2. **Filters** — By status, date, patient name
-3. **Order Detail View** — Click into any order to view full details
-4. **Status Tracking** — Draft → Submitted → Approved → Ordered → Delivered (manually updated in Sprint 1)
-5. **Re-download documents** — Access generated PDFs from order detail view
+1. **Summary Cards** — Total Orders, Draft, In Progress, Delivered, Awaiting Approval (prior-auth orders pending manager review)
+2. **Order List** — All orders in a searchable, filterable table
+3. **Filters** — By status, by patient name search
+4. **Order Detail View** — Click into any order to view full details + billing sidebar
+
+#### E. Status Workflow (Linear Progression)
+1. **Linear flow only** — Draft → Submitted → Approved → Ordered → Delivered (can only advance one step, no skipping)
+2. **Contextual next-step button** — "Submit Order", "Approve Order", "Mark as Ordered", "Mark as Delivered"
+3. **Status change dialog** — Captures actor name (typed, no login) and optional comment
+4. **Manager approval gate** — Orders with prior-auth items show a distinct approval dialog at Submitted → Approved, listing flagged items for review, with Approve and Reject options
+5. **Rejection handling** — Rejection records a comment in status history without changing status
+6. **Activity timeline** — Order detail shows full status history: who, when, from → to, role (Employee/Manager), comments
+7. **Re-download documents** — Access generated PDFs from order detail view
 
 ---
 
@@ -129,25 +140,25 @@ Alex's team manages patient orders and billing through a fragile Excel spreadshe
 
 | Feature | Why Not Yet | Target Sprint |
 |---|---|---|
-| DocuSign integration | Existing workflow works; focus on data accuracy first | Sprint 2-3 |
-| Stripe integration | Employee pastes link manually; low friction | Sprint 2-3 |
-| Manager approval workflow | Needs role-based permissions; SharePoint still works | Sprint 3 |
-| Automated vendor emails | Needs vendor mapping + templates; manual portal entry continues | Sprint 4 |
-| Measurement form parsing/validation | We store the file but don't extract data from it | Sprint 2+ |
+| DocuSign integration | Employee uploads PDF to DocuSign manually; works today | Sprint 2 |
+| Stripe integration | Employee pastes link manually; low friction bridge | Sprint 2 |
 | Proof of Delivery generation | Triggered by delivery event, not order creation | Sprint 2 |
-| Insurance billing/claims | Outside core scope | Sprint 4+ |
+| Role-based authentication / login | Name-based actor tracking sufficient for now | Sprint 3 |
+| Automated vendor email dispatch | Needs vendor mapping + email templates | Sprint 3 |
+| Measurement form parsing/validation | We store the file but don't extract data from it | Sprint 3+ |
+| Insurance billing/claims submission | Outside core scope, complex payer integrations | Sprint 4+ |
+| Analytics & reporting dashboard | Need real usage data first | Sprint 4 |
 
 ---
 
 ## Phased Roadmap
 
-| Sprint | Theme | Key Deliverables |
-|---|---|---|
-| **Sprint 1** (Weeks 1-2) | Replace the Spreadsheet | Order form, auto-calculations, document generation, product/fee tables, order dashboard |
-| **Sprint 2** (Weeks 3-4) | Complete the Document Lifecycle | POD generation, file uploads (measurement forms), PDF template refinement, bulk order view |
-| **Sprint 3** (Weeks 5-6) | Workflow & Permissions | Manager approval flow, role-based access, order status automation, audit trail |
-| **Sprint 4** (Weeks 7-8) | External Integrations | DocuSign API, Stripe API, automated vendor email dispatch |
-| **Sprint 5** (Weeks 9-10) | Optimization & Intelligence | Analytics dashboard, prior auth automation, reporting, vendor portal integration |
+| Sprint | Theme | Key Deliverables | Value Delivered |
+|---|---|---|---|
+| **Sprint 1** (Weeks 1-2) | **Replace the Spreadsheet** | Order entry form with auto-calculations, encounter form + invoice generation, product & fee schedule admin (with CSV bulk upload), measurement form upload, order dashboard, linear status workflow with approval gate, activity timeline | Team stops using Excel. Orders are structured, calculations are reliable, documents auto-generate, status is tracked. |
+| **Sprint 2** (Weeks 3-4) | **Document & Payment Integrations** | DocuSign API (send invoice for signature directly from app), Stripe API (generate payment links automatically), POD generation + email, PDF export improvements | Team stops manually uploading to DocuSign and creating Stripe links. Document lifecycle is fully automated. |
+| **Sprint 3** (Weeks 5-6) | **Workflow Automation & Access Control** | User authentication + role-based access (employee vs. manager), automated vendor email dispatch (detect vendor → send order to correct email), email notifications for status changes, prior auth tracking enhancements | Manager approval is enforced by the system. Vendor orders are automated. Team gets notified of status changes. |
+| **Sprint 4** (Weeks 7-8) | **Optimization & Intelligence** | Analytics dashboard (order volume, margins, turnaround times), reporting (by payer, by vendor, by product), bulk operations, advanced search/filters, audit trail export, performance optimization with real database (PostgreSQL) | Alex has visibility into business performance. Team can operate at scale. |
 
 ---
 
@@ -188,3 +199,6 @@ Alex's team manages patient orders and billing through a fragile Excel spreadshe
 
 ### Generated Documents
 - id, order_id, type (encounter_form | patient_invoice), generated_at, pdf_url
+
+### Status Change (Activity Log)
+- id, from_status, to_status, actor_name, actor_role (employee | manager), comment, timestamp
