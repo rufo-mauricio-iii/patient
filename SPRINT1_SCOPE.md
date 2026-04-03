@@ -184,14 +184,18 @@ Alex's team manages patient orders and billing through a fragile Excel spreadshe
 
 ---
 
-## Tech Stack (for deployable prototype)
+## Tech Stack
 
-- **Framework:** Next.js (React)
+- **Framework:** Next.js (React) + TypeScript
 - **Styling:** Tailwind CSS + shadcn/ui
-- **Database:** (Prototype: local state or JSON / Production: PostgreSQL)
-- **PDF Generation:** HTML-to-PDF (e.g., react-pdf or similar)
-- **Deployment:** Vercel
+- **State:** Zustand (client-side, in-memory — prototype uses seed data; production would use PostgreSQL)
+- **Document Generation:** HTML templates rendered in new browser tab (printable)
+- **Deployment:** Vercel (Hobby tier)
 - **IDE:** Cursor (AI-assisted development)
+
+**Prototype Note:** This is a clickable, deployable prototype. Data is client-side (resets on refresh). Production Sprint 1 would add PostgreSQL for persistence and cloud storage (e.g., S3/Vercel Blob) for file uploads. The UI and business logic remain the same.
+
+**Live URL:** https://patient-beige.vercel.app
 
 ---
 
